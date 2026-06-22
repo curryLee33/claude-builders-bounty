@@ -3,7 +3,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-HOOK = Path(__file__).resolve().parents[1] / "block_destructive_commands.py"
+HOOK = (
+    Path(__file__).resolve().parents[1]
+    / "pre-tool-use"
+    / "block_destructive_commands.py"
+)
 
 
 def run_hook(command: str) -> tuple[int, str]:
@@ -37,6 +41,12 @@ def test_blocks_force_push():
 
 def test_blocks_drop_table():
     code, out = run_hook("psql -c 'DROP TABLE users'")
+    assert code == 0
+    assert "deny" in out
+
+
+def test_blocks_truncate():
+    code, out = run_hook("TRUNCATE TABLE users")
     assert code == 0
     assert "deny" in out
 
